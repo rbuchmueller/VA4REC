@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>RecSys Visual Analysis</title>
+
+  <!-- font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- LEFT PANEL -->
+  <div class="panel left">
+    <h2>Controls</h2>
+
+    <label>Iteration</label>
+    <input type="range" id="iter" min="1" max="5" value="1">
+    <div id="iter_val">1</div>
+
+    <label>Color</label>
+    <select id="color_mode">
+      <option value="drift">Drift</option>
+      <option value="us_proportion">US proportion</option>
+      <option value="local_proportion">Local proportion</option>
+      <option value="bin_jsd">Popularity bias</option>
+    </select>
+
+    <label>Country</label>
+    <select id="country_filter">
+      <option value="ALL">All</option>
+    </select>
+
+  </div>
+
+  <!-- CENTER -->
+  <div class="panel center">
+    <svg id="plot"></svg>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel right">
+    <h2>User Detail</h2>
+    <div id="details">Click a user</div>
+    <svg id="timeline" width="250" height="150"></svg>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
