@@ -3,55 +3,164 @@
 <head>
   <meta charset="utf-8">
   <title>RecSys Visual Analysis</title>
-
-  <!-- font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
-
 <body>
+  <div class="app-shell">
 
-<div class="container">
+    <aside class="panel panel-left">
+  <h2>Controls</h2>
 
-  <!-- LEFT PANEL -->
-  <div class="panel left">
-    <h2>Controls</h2>
-
-    <label>Iteration</label>
-    <input type="range" id="iter" min="1" max="5" value="1">
-    <div id="iter_val">1</div>
-
-    <label>Color</label>
+  <div class="control-block">
+    <label for="color_mode">Color metric</label>
     <select id="color_mode">
       <option value="drift">Drift</option>
       <option value="us_proportion">US proportion</option>
       <option value="local_proportion">Local proportion</option>
       <option value="bin_jsd">Popularity bias</option>
+      <option value="n_input_interactions">Activity</option>
+      <option value="ndcg_at_10">NDCG@10</option>
     </select>
+  </div>
 
-    <label>Country</label>
-    <select id="country_filter">
+  <div class="control-block">
+    <label for="country_highlight">Highlight country</label>
+    <select id="country_highlight">
       <option value="ALL">All</option>
     </select>
-
   </div>
 
-  <!-- CENTER -->
-  <div class="panel center">
-    <svg id="plot"></svg>
+  <div class="control-block">
+    <label for="group_highlight">Highlight custom group</label>
+    <select id="group_highlight">
+      <option value="NONE">None</option>
+    </select>
   </div>
 
-  <!-- RIGHT PANEL -->
-  <div class="panel right">
-    <h2>User Detail</h2>
-    <div id="details">Click a user</div>
-    <svg id="timeline" width="250" height="150"></svg>
+  <div class="control-block">
+    <button id="open_group_builder" type="button" class="secondary-btn">New / Edit group</button>
   </div>
 
+  <div id="group_builder" class="group-builder hidden">
+    <div class="control-block">
+      <label for="group_name">Group name</label>
+      <input id="group_name" type="text" placeholder="e.g. Spanish-speaking countries">
+    </div>
+
+    <div class="control-block">
+      <label>Countries</label>
+      <div id="group_country_list" class="group-country-list"></div>
+    </div>
+
+    <div class="group-builder-actions">
+      <button id="save_group_btn" type="button">Save group</button>
+      <button id="cancel_group_btn" type="button" class="secondary-btn">Cancel</button>
+      <button id="delete_group_btn" type="button" class="danger-btn">Delete active</button>
+    </div>
+  </div>
+
+  <div class="control-block">
+    <label for="size_mode">Point size</label>
+    <select id="size_mode">
+      <option value="constant">Constant</option>
+      <option value="n_input_interactions">Activity</option>
+      <option value="drift">Drift</option>
+    </select>
+  </div>
+
+  <div class="control-block">
+    <label for="opacity_nonselected">Context opacity</label>
+    <input type="range" id="opacity_nonselected" min="0.05" max="1" step="0.05" value="0.20">
+    <div class="slider-value" id="opacity_nonselected_value">0.20</div>
+  </div>
+
+  <div class="control-block">
+    <label for="selected_iteration">Inspection iteration</label>
+    <input type="range" id="selected_iteration" min="1" max="5" step="1" value="1">
+    <div class="slider-value" id="selected_iteration_value">1</div>
+  </div>
+
+<div class="control-block">
+  <label for="item_color_mode">Item color metric</label>
+  <select id="item_color_mode">
+    <option value="n_recommended">Recommended count</option>
+    <option value="n_accepted">Accepted count</option>
+    <option value="n_input_interactions">Item interactions</option>
+  </select>
 </div>
 
-<script src="app.js"></script>
+<div class="control-block">
+  <label for="item_size_mode">Item point size</label>
+  <select id="item_size_mode">
+    <option value="constant">Constant</option>
+    <option value="n_recommended">Recommended count</option>
+    <option value="n_accepted">Accepted count</option>
+    <option value="n_input_interactions">Item interactions</option>
+  </select>
+</div>
+
+<div class="control-block">
+  <button id="clear_link_selection" type="button" class="secondary-btn">Clear linked brush</button>
+</div>
+
+<div id="link_status" class="details-box">No active linked brush.</div>
+
+
+  <div class="note-block">
+    <div class="note-title">Interaction</div>
+    <div class="note-text">
+      Click a user in any panel to inspect temporal metrics and recommendation details. Country groups can be defined manually and reused across reloads.
+    </div>
+  </div>
+
+</aside>
+
+<main class="panel panel-center">
+  <div class="projection-row">
+    <div class="header-row">
+      <div>
+        <h1>Aligned User Embedding Views</h1>
+        <div class="subtitle">Shared PCA coordinates across iterations</div>
+      </div>
+      <div class="legend-block">
+        <svg id="colorbar" width="220" height="48"></svg>
+      </div>
+    </div>
+
+    <div id="small_multiples" class="small-multiples-grid"></div>
+  </div>
+
+  <div class="projection-row">
+    <div class="header-row">
+      <div>
+        <h1>Aligned Item Embedding Views</h1>
+        <div class="subtitle">Shared PCA coordinates across iterations</div>
+      </div>
+      <div class="legend-block">
+        <svg id="item_colorbar" width="220" height="48"></svg>
+      </div>
+    </div>
+
+    <div id="item_small_multiples" class="small-multiples-grid"></div>
+  </div>
+</main>
+
+    <aside class="panel panel-right">
+      <h2>User Detail</h2>
+      <div id="details" class="details-box">Click a user</div>
+
+      <h3>Metric over Iterations</h3>
+      <svg id="timeline" width="300" height="190"></svg>
+
+      <h3>Recommendations</h3>
+      <div id="recommendations" class="recommendations-box">No recommendation export loaded.</div>
+    <h3>Item Detail</h3>
+<div id="item_details" class="details-box">Click an item</div>
+    </aside>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
